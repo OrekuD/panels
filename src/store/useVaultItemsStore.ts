@@ -3,6 +3,7 @@ import uuid from "../utils/uuid";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { mmkvStorage } from "./storage";
 import { VaultFile, VaultFolder } from "../types";
+import { Alert } from "react-native";
 
 type VaultItemsStore = {
   folders: VaultFolder[];
@@ -54,6 +55,17 @@ const useVaultItemsStore = create(
         })),
       createFolder: (name, parentId = null) => {
         const newFolderId = uuid();
+
+        const folderExists =
+          get().folders.findIndex((folder) => name === folder.name) !== -1;
+
+        if (folderExists) {
+          Alert.alert(
+            "Duplicate Folder",
+            "A folder with that name already exist"
+          );
+          return;
+        }
 
         const newFolder: VaultFolder = {
           id: newFolderId,

@@ -3,12 +3,13 @@ import Typography from "@/src/components/Typography";
 import useScreenType from "@/src/hooks/useScreenType";
 import useCollectionsStore from "@/src/store/useCollectionsStore";
 import useSettingsStore from "@/src/store/useSettingsStore";
-import { Entypo } from "@expo/vector-icons";
+import { Entypo, Ionicons } from "@expo/vector-icons";
 import { FlashList } from "@shopify/flash-list";
 import { BlurView } from "expo-blur";
 import { useRouter } from "expo-router";
 import React from "react";
 import {
+  FlatList,
   PermissionsAndroid,
   Platform,
   TouchableOpacity,
@@ -86,40 +87,68 @@ export default function Vault() {
     console.log({ e: result.assets[0] });
   }, []);
 
-  const renderFolderItem = (item: VaultFolder) => (
-    <TouchableOpacity
-      style={styles.folderItem}
-      // onPress={() => router.push(`/folder/${item.id}`)}
-    >
-      <View>
-        <Typography numberOfLines={1}>{item.name}</Typography>
-        <Typography>{new Date(item.createdAt).toLocaleDateString()}</Typography>
-      </View>
-    </TouchableOpacity>
-  );
+  const renderFolderItem = React.useCallback((item: VaultFolder) => {
+    const files = [...item.childrenIds.files, ...item.childrenIds.folders];
+    return (
+      <TouchableOpacity
+        style={styles.folderItem}
+        activeOpacity={0.7}
+        // onPress={() => router.push(`/folder/${item.id}`)}
+      >
+        <View style={styles.folderIconContainer}>
+          <Ionicons
+            name="folder-open-sharp"
+            size={24}
+            color={theme.colors.typography}
+          />
+        </View>
+        <View
+          style={{
+            paddingHorizontal: 6,
+            paddingVertical: 4,
+          }}
+        >
+          <Typography
+            size="sm"
+            numberOfLines={1}
+            style={{
+              width: "100%",
+            }}
+          >
+            {item.name}
+          </Typography>
+          <Typography size="sm" color="secondary">
+            {files.length} files
+          </Typography>
+        </View>
+      </TouchableOpacity>
+    );
+  }, []);
 
-  const renderFileItem = (item: VaultFile) => (
-    <TouchableOpacity
-      style={styles.fileItem}
-      onPress={() => {
-        // show preview or popup or what ever
-      }}
-    >
-      {/* <Ionicons 
-        name={getFileIcon(item.type)} 
-        size={24} 
-        color="#007AFF" 
-        style={styles.icon} 
-      /> */}
-      <View>
-        <Typography numberOfLines={1}>{item.name}</Typography>
-        <Typography>
-          {formatFileSize(item.size)} ·{" "}
-          {new Date(item.createdAt).toLocaleDateString()}
-        </Typography>
-      </View>
-    </TouchableOpacity>
-  );
+  const renderFileItem = React.useCallback((item: VaultFile) => {
+    return (
+      <TouchableOpacity
+        style={styles.fileItem}
+        onPress={() => {
+          // show preview or popup or what ever
+        }}
+      >
+        {/* <Ionicons 
+          name={getFileIcon(item.type)} 
+          size={24} 
+          color="#007AFF" 
+          style={styles.icon} 
+        /> */}
+        <View>
+          <Typography numberOfLines={1}>{item.name}</Typography>
+          <Typography>
+            {formatFileSize(item.size)} ·{" "}
+            {new Date(item.createdAt).toLocaleDateString()}
+          </Typography>
+        </View>
+      </TouchableOpacity>
+    );
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -166,7 +195,7 @@ export default function Vault() {
         </View>
       )}
       <View style={styles.content}>
-        <FlashList
+        <FlatList
           data={[...rootFolders, ...rootFiles]}
           keyExtractor={({ id }) => id}
           renderItem={({ item }) => {
@@ -176,8 +205,11 @@ export default function Vault() {
               return renderFileItem(item);
             }
           }}
-          numColumns={2}
-          estimatedItemSize={380}
+          numColumns={3}
+          columnWrapperStyle={{
+            justifyContent: "space-between",
+          }}
+          // estimatedItemSize={380}
           contentContainerStyle={{
             paddingTop: isMobile ? top + 12 : 54,
             paddingBottom: isMobile ? bottom + 100 : 150,
@@ -185,7 +217,7 @@ export default function Vault() {
           }}
           ListEmptyComponent={<Typography>No files</Typography>}
           ItemSeparatorComponent={() => (
-            <View style={{ height: theme.margins["2xl"] }} />
+            <View style={{ height: theme.margins["2xl"] / 2 }} />
           )}
           ListHeaderComponent={
             <View style={{ marginBottom: 16 }}>
@@ -252,10 +284,20 @@ const stylesheet = createStyleSheet((theme) => ({
   },
   folderItem: {
     borderWidth: 1,
-    borderColor: "yellow",
+    borderColor: theme.colors.gray200,
+    borderRadius: 6,
+    width: (UnistylesRuntime.screen.width - 3 * theme.margins["2xl"]) / 3,
+    height: (UnistylesRuntime.screen.width - 3 * theme.margins["2xl"]) / 3,
   },
   fileItem: {
-    borderWidth: 1,
-    borderColor: "red",
+    // borderWidth: 1,
+    // borderColor: "red",
+    // width: (UnistylesRuntime.screen.width - 3 * theme.margins["2xl"]) / 3,
+  },
+  folderIconContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingTop: 16,
   },
 }));
