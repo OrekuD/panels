@@ -6,7 +6,7 @@ import useSettingsStore from "@/src/store/useSettingsStore";
 import { Entypo, Ionicons } from "@expo/vector-icons";
 import { FlashList } from "@shopify/flash-list";
 import { BlurView } from "expo-blur";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
 import {
   FlatList,
@@ -24,15 +24,13 @@ import {
   useStyles,
 } from "react-native-unistyles";
 import * as DocumentPicker from "expo-document-picker";
-import * as FileSystem from "expo-file-system";
 import useVaultItemsStore from "@/src/store/useVaultItemsStore";
-import { VaultFile, VaultFolder } from "@/src/types";
-import { formatFileSize } from "@/src/utils/formatFileSize";
 import VaultSelector from "@/src/components/VaultSelector";
 import Folder from "@/src/components/Folder";
 import File from "@/src/components/File";
 
-export default function Vault() {
+export default function FolderScreen() {
+  const { id: folderId } = useLocalSearchParams();
   const { styles, theme } = useStyles(stylesheet);
   const router = useRouter();
   const { isMobile } = useScreenType();
@@ -42,14 +40,19 @@ export default function Vault() {
   const settingsStore = useSettingsStore((state) => state.settings);
   const colorScheme = useColorScheme();
 
-  const rootFolders = React.useMemo(
-    () => folders.filter((folder) => folder.parentId === null),
-    [folders]
+  const currentFolder = React.useMemo(
+    () => folders.find((folder) => folder.id === folderId),
+    [folders, folderId]
   );
 
-  const rootFiles = React.useMemo(
-    () => files.filter((file) => file.parentId === null),
-    [files]
+  const childFolders = React.useMemo(
+    () => folders.filter((folder) => folder.parentId === folderId),
+    [folders, folderId]
+  );
+
+  const childFiles = React.useMemo(
+    () => files.filter((file) => file.parentId === folderId),
+    [files, folderId]
   );
 
   const themeMode = React.useMemo(() => {
@@ -117,7 +120,7 @@ export default function Vault() {
             },
           ]}
         >
-          <VaultSelector />
+          <VaultSelector folder={currentFolder} />
         </BlurView>
       ) : (
         <View
@@ -130,12 +133,12 @@ export default function Vault() {
             },
           ]}
         >
-          <VaultSelector />
+          <VaultSelector folder={currentFolder} />
         </View>
       )}
       <View style={styles.content}>
         <FlatList
-          data={[...rootFolders, ...rootFiles]}
+          data={[...childFolders, ...childFiles]}
           keyExtractor={({ id }) => id}
           renderItem={({ item }) => {
             if ("childrenIds" in item) {
@@ -161,10 +164,7 @@ export default function Vault() {
           ListHeaderComponent={
             <View style={{ marginBottom: 16 }}>
               <Typography size="3xl" fontWeight="900">
-                Your
-              </Typography>
-              <Typography size="3xl" fontWeight="900">
-                Vault
+                {currentFolder?.name}
               </Typography>
             </View>
           }

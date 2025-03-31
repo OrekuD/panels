@@ -4,7 +4,7 @@ import { AntDesign, Entypo } from "@expo/vector-icons";
 import { useStyles } from "react-native-unistyles";
 import webDropdownStyleSheet from "../styles/webDropdownStyleSheet";
 import useCollectionsStore from "../store/useCollectionsStore";
-import { Comic } from "../types";
+import { Comic, VaultFolder } from "../types";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system";
 // import { unzip } from "react-native-zip-archive";
@@ -19,6 +19,7 @@ import prompt from "react-native-prompt-android";
 
 type VaultDropdownProps = {
   children: React.ReactElement<any, string | React.JSXElementConstructor<any>>;
+  folder?: VaultFolder;
 };
 
 export default function VaultDropdown(props: VaultDropdownProps) {
@@ -38,7 +39,7 @@ export default function VaultDropdown(props: VaultDropdownProps) {
         {
           text: "OK",
           onPress: (folderName) => {
-            createFolder(folderName, null);
+            createFolder(folderName, props.folder ? props.folder.id : null);
           },
         },
       ],
@@ -49,7 +50,7 @@ export default function VaultDropdown(props: VaultDropdownProps) {
         placeholder: "",
       }
     );
-  }, []);
+  }, [props.folder]);
 
   async function pickFile() {
     try {
@@ -123,28 +124,30 @@ export default function VaultDropdown(props: VaultDropdownProps) {
         alignOffset={Platform.OS === "ios" ? -8 : -100}
         sideOffset={Platform.OS === "ios" ? 6 : -100}
       >
-        <DropdownMenu.Group>
-          <DropdownMenu.Item
-            key="settings"
-            onSelect={() => {}}
-            style={{
-              ...webStyles.dropdownCheckboxItem,
-              borderBottomWidth: 0,
-            }}
-          >
-            <DropdownMenu.ItemTitle style={webStyles.dropdownTitle}>
-              Settings
-            </DropdownMenu.ItemTitle>
-            <DropdownMenu.ItemSubtitle style={webStyles.dropdownSubTitle}>
-              customize your vault
-            </DropdownMenu.ItemSubtitle>
-            <DropdownMenu.ItemIcon
-              ios={{
-                name: "gear",
+        {!props.folder && (
+          <DropdownMenu.Group>
+            <DropdownMenu.Item
+              key="settings"
+              onSelect={() => {}}
+              style={{
+                ...webStyles.dropdownCheckboxItem,
+                borderBottomWidth: 0,
               }}
-            />
-          </DropdownMenu.Item>
-        </DropdownMenu.Group>
+            >
+              <DropdownMenu.ItemTitle style={webStyles.dropdownTitle}>
+                Settings
+              </DropdownMenu.ItemTitle>
+              <DropdownMenu.ItemSubtitle style={webStyles.dropdownSubTitle}>
+                customize your vault
+              </DropdownMenu.ItemSubtitle>
+              <DropdownMenu.ItemIcon
+                ios={{
+                  name: "gear",
+                }}
+              />
+            </DropdownMenu.Item>
+          </DropdownMenu.Group>
+        )}
         <DropdownMenu.Group>
           <DropdownMenu.Item
             key="import"
