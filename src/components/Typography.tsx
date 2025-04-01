@@ -3,9 +3,11 @@ import { Text as DefaultText } from "react-native";
 import { useStyles } from "react-native-unistyles";
 import useSettingsStore from "../store/useSettingsStore";
 
+type TypographyColors = "primary" | "secondary";
+
 type TypographyProps = DefaultText["props"] & {
   size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
-  color?: "primary" | "secondary";
+  color?: TypographyColors | Omit<TypographyColors, string>;
   fontWeight?: "400" | "500" | "600" | "700" | "800" | "900";
 };
 

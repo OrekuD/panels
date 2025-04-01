@@ -12,7 +12,7 @@ import { UnistylesRuntime } from "react-native-unistyles";
 
 import { useColorScheme } from "@/src/hooks/useColorScheme";
 import useSettingsStore from "@/src/store/useSettingsStore";
-import { StatusBar } from "react-native";
+import { Platform, StatusBar } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "../src/utils/unistyles";
 import useLibraryStore from "@/src/store/useLibraryStore";
@@ -61,13 +61,20 @@ export default function RootLayout() {
       StatusBar.setBarStyle(
         settingsStore.themeMode === "dark" ? "light-content" : "dark-content"
       );
-      StatusBar.setBackgroundColor(
-        settingsStore.themeMode === "dark" ? "black" : "white"
-      );
+      if (Platform.OS === "android") {
+        StatusBar.setBackgroundColor(
+          settingsStore.themeMode === "dark" ? "black" : "white"
+        );
+      }
     } else {
       StatusBar.setBarStyle(
         colorScheme === "dark" ? "light-content" : "dark-content"
       );
+      if (Platform.OS === "android") {
+        StatusBar.setBackgroundColor(
+          colorScheme === "dark" ? "black" : "white"
+        );
+      }
     }
   }, [settingsStore.themeMode, colorScheme]);
 

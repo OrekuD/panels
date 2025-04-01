@@ -89,6 +89,8 @@ export default function Vault() {
     console.log({ e: result.assets[0] });
   }, []);
 
+  const onFilePress = React.useCallback(() => {}, []);
+
   return (
     <View style={styles.container}>
       {Platform.OS === "ios" && settingsStore.progressiveBlursEnabled ? (
@@ -144,10 +146,38 @@ export default function Vault() {
               return <File file={item} />;
             }
           }}
-          numColumns={3}
+          numColumns={4}
           columnWrapperStyle={{
             justifyContent: "space-between",
           }}
+          ListFooterComponent={
+            <>
+              <File
+                file={{
+                  createdAt: new Date().toISOString(),
+                  id: "12",
+                  name: "filename.png",
+                  parentId: null,
+                  size: 4000,
+                  type: "image",
+                  uri: "",
+                  thumbnail: "",
+                }}
+              />
+              <File
+                file={{
+                  createdAt: new Date().toISOString(),
+                  id: "12",
+                  name: "filename.mp4",
+                  parentId: null,
+                  size: 4000,
+                  type: "video",
+                  uri: "",
+                  thumbnail: "",
+                }}
+              />
+            </>
+          }
           // estimatedItemSize={380}
           contentContainerStyle={{
             paddingTop: isMobile ? top + 12 : 54,
@@ -156,13 +186,10 @@ export default function Vault() {
           }}
           ListEmptyComponent={<Typography>No files</Typography>}
           ItemSeparatorComponent={() => (
-            <View style={{ height: theme.margins["2xl"] / 2 }} />
+            <View style={{ height: theme.margins["2xl"] / 3 }} />
           )}
           ListHeaderComponent={
             <View style={{ marginBottom: 16 }}>
-              <Typography size="3xl" fontWeight="900">
-                Your
-              </Typography>
               <Typography size="3xl" fontWeight="900">
                 Vault
               </Typography>
@@ -220,23 +247,5 @@ const stylesheet = createStyleSheet((theme) => ({
     borderColor: theme.colors.borderColor,
     alignItems: "center",
     justifyContent: "center",
-  },
-  folderItem: {
-    borderWidth: 1,
-    borderColor: theme.colors.gray200,
-    borderRadius: 6,
-    width: (UnistylesRuntime.screen.width - 3 * theme.margins["2xl"]) / 3,
-    height: (UnistylesRuntime.screen.width - 3 * theme.margins["2xl"]) / 3,
-  },
-  fileItem: {
-    // borderWidth: 1,
-    // borderColor: "red",
-    // width: (UnistylesRuntime.screen.width - 3 * theme.margins["2xl"]) / 3,
-  },
-  folderIconContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingTop: 16,
   },
 }));

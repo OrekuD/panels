@@ -17,9 +17,10 @@ export type ComicCollection = {
 export type VaultFile = {
   id: string;
   name: string;
-  type: string;
+  type: "image" | "video"; // Updated type to be specific
   size: number;
   uri: string;
+  thumbnail: string;
   createdAt: string;
   parentId: string | null; // null if at root level
 };

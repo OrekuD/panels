@@ -147,7 +147,7 @@ export default function FolderScreen() {
               return <File file={item} />;
             }
           }}
-          numColumns={3}
+          numColumns={4}
           columnWrapperStyle={{
             justifyContent: "space-between",
           }}
@@ -159,7 +159,7 @@ export default function FolderScreen() {
           }}
           ListEmptyComponent={<Typography>No files</Typography>}
           ItemSeparatorComponent={() => (
-            <View style={{ height: theme.margins["2xl"] / 2 }} />
+            <View style={{ height: theme.margins["2xl"] / 3 }} />
           )}
           ListHeaderComponent={
             <View style={{ marginBottom: 16 }}>

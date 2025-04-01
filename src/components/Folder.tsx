@@ -27,7 +27,7 @@ export default function Folder({ folder }: { folder: VaultFolder }) {
       <View style={styles.folderIconContainer}>
         <Ionicons
           name="folder-open-sharp"
-          size={24}
+          size={16}
           color={theme.colors.typography}
         />
       </View>
@@ -38,7 +38,7 @@ export default function Folder({ folder }: { folder: VaultFolder }) {
         }}
       >
         <Typography
-          size="sm"
+          size="xs"
           numberOfLines={1}
           style={{
             width: "100%",
@@ -46,7 +46,7 @@ export default function Folder({ folder }: { folder: VaultFolder }) {
         >
           {folder.name}
         </Typography>
-        <Typography size="sm" color="secondary">
+        <Typography size="xs" color="secondary">
           {files} items
         </Typography>
       </View>
@@ -59,8 +59,8 @@ const stylesheet = createStyleSheet((theme) => ({
     borderWidth: 1,
     borderColor: theme.colors.gray200,
     borderRadius: 6,
-    width: (UnistylesRuntime.screen.width - 3 * theme.margins["2xl"]) / 3,
-    height: (UnistylesRuntime.screen.width - 3 * theme.margins["2xl"]) / 3,
+    width: theme.previewSize,
+    height: theme.previewSize,
   },
   folderIconContainer: {
     flex: 1,

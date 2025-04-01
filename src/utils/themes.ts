@@ -1,3 +1,16 @@
+import { UnistylesRuntime } from "react-native-unistyles";
+
+const size = {
+  margins: {
+    sm: 2,
+    md: 4,
+    lg: 8,
+    xl: 12,
+    "2xl": 16,
+  },
+  previewSize: (UnistylesRuntime.screen.width - 3 * 16) / 4,
+};
+
 export const lightTheme = {
   colors: {
     typography: "#000000",
@@ -14,13 +27,7 @@ export const lightTheme = {
     blue: "#3ABEE2",
     green: "#AEF359",
   },
-  margins: {
-    sm: 2,
-    md: 4,
-    lg: 8,
-    xl: 12,
-    "2xl": 16,
-  },
+  ...size,
 } as const;
 
 export const darkTheme = {
@@ -39,11 +46,5 @@ export const darkTheme = {
     blue: "#3ABEE2",
     green: "#AEF359",
   },
-  margins: {
-    sm: 2,
-    md: 4,
-    lg: 8,
-    xl: 12,
-    "2xl": 16,
-  },
+  ...size,
 } as const;
