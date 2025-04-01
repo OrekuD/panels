@@ -6,10 +6,13 @@ import { useAnimations } from "@react-native-media-console/reanimated";
 import MediaConsoleVideoPlayer from "react-native-media-console";
 import { useNavigation } from "@react-navigation/native";
 import RNVideoPlayer from "react-native-video-player";
+import Orientation from "react-native-orientation-locker";
+import Video from "react-native-video";
 
 interface Props {
   isVisible: boolean;
-  videos: string[];
+  video: string;
+  thumbnail: string;
   onClose: () => void;
   startIndex?: number;
   setSlideIndex?: React.Dispatch<React.SetStateAction<number>>;
@@ -43,9 +46,9 @@ export default function VideoPlayer(props: Props) {
           navigator={navigation}
           onBack={props.onClose}
         /> */}
-        <RNVideoPlayer
+        {/* <RNVideoPlayer
           endWithThumbnail
-          autoplay
+          // autoplay
           thumbnail={{
             uri: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/BigBuckBunny.jpg",
           }}
@@ -55,6 +58,28 @@ export default function VideoPlayer(props: Props) {
           // onError={(e) => console.log(e)}
           showDuration={true}
           style={styles.videoPlayer}
+        /> */}
+        <Video
+          source={{
+            // uri: "https://vjs.zencdn.net/v/oceans.mp4",
+            uri: props.video,
+          }}
+          paused={false}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            bottom: 0,
+            right: 0,
+          }}
+          repeat={true}
+          controls
+          // fullscreen
+          // fullscreenAutorotate
+          // fullscreenOrientation="landscape"
+          resizeMode="contain"
+          onFullscreenPlayerDidPresent={() => Orientation.lockToLandscapeLeft()}
+          onFullscreenPlayerDidDismiss={() => Orientation.lockToPortrait()}
         />
       </View>
     </Modal>
@@ -66,7 +91,7 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     // alignItems: "center",
-    justifyContent: "center",
+    // justifyContent: "center",
     backgroundColor: "rgba(0, 0, 0, 0.9)",
   },
   closeButton: {
@@ -82,6 +107,5 @@ const styles = StyleSheet.create({
   },
   videoPlayer: {
     width: "100%",
-    // height: "100%",
   },
 });

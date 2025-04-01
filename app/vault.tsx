@@ -60,37 +60,6 @@ export default function Vault() {
     return settingsStore.themeMode;
   }, [settingsStore.themeMode, UnistylesRuntime.hasAdaptiveThemes]);
 
-  const importFiles = React.useCallback(async () => {
-    if (Platform.OS === "android") {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-        {
-          title: "Panels",
-          message: "Panels needs access to your files",
-          buttonNeutral: "Ask Me Later",
-          buttonNegative: "Cancel",
-          buttonPositive: "OK",
-        }
-      );
-      console.log("here 1");
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        console.log("You can access the files");
-      } else {
-        console.log("Files access permission denied");
-      }
-    }
-
-    const result = await DocumentPicker.getDocumentAsync({});
-
-    if (result.canceled || !result.assets.length) {
-      return;
-    }
-
-    console.log({ e: result.assets[0] });
-  }, []);
-
-  const onFilePress = React.useCallback(() => {}, []);
-
   return (
     <View style={styles.container}>
       {Platform.OS === "ios" && settingsStore.progressiveBlursEnabled ? (
@@ -148,36 +117,8 @@ export default function Vault() {
           }}
           numColumns={4}
           columnWrapperStyle={{
-            justifyContent: "space-between",
+            gap: theme.margins["2xl"] / 3,
           }}
-          ListFooterComponent={
-            <>
-              <File
-                file={{
-                  createdAt: new Date().toISOString(),
-                  id: "12",
-                  name: "filename.png",
-                  parentId: null,
-                  size: 4000,
-                  type: "image",
-                  uri: "",
-                  thumbnail: "",
-                }}
-              />
-              <File
-                file={{
-                  createdAt: new Date().toISOString(),
-                  id: "12",
-                  name: "filename.mp4",
-                  parentId: null,
-                  size: 4000,
-                  type: "video",
-                  uri: "",
-                  thumbnail: "",
-                }}
-              />
-            </>
-          }
           // estimatedItemSize={380}
           contentContainerStyle={{
             paddingTop: isMobile ? top + 12 : 54,

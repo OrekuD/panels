@@ -7,6 +7,7 @@ import useCollectionsStore from "../store/useCollectionsStore";
 import { Comic, VaultFolder } from "../types";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system";
+import * as MediaLibrary from "expo-media-library";
 // import { unzip } from "react-native-zip-archive";
 import useLibraryStore from "../store/useLibraryStore";
 import uuid from "../utils/uuid";
@@ -16,6 +17,8 @@ import { XMLParser } from "fast-xml-parser";
 import { useRouter } from "expo-router";
 import useVaultItemsStore from "../store/useVaultItemsStore";
 import prompt from "react-native-prompt-android";
+import { VaultFile } from "../types";
+import * as VideoThumbnails from "expo-video-thumbnails";
 
 type VaultDropdownProps = {
   children: React.ReactElement<any, string | React.JSXElementConstructor<any>>;
@@ -25,6 +28,7 @@ type VaultDropdownProps = {
 export default function VaultDropdown(props: VaultDropdownProps) {
   const { styles: webStyles, theme } = useStyles(webDropdownStyleSheet);
   const createFolder = useVaultItemsStore((state) => state.createFolder);
+  const addFile = useVaultItemsStore((state) => state.addFile); // Get addFile function
   const router = useRouter();
 
   const addFolder = React.useCallback(() => {
@@ -52,68 +56,144 @@ export default function VaultDropdown(props: VaultDropdownProps) {
     );
   }, [props.folder]);
 
-  async function pickFile() {
-    try {
-      if (Platform.OS === "android") {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-          {
-            title: "Panels",
-            message: "Panels needs access to your files",
-            buttonNeutral: "Ask Me Later",
-            buttonNegative: "Cancel",
-            buttonPositive: "OK",
-          }
-        );
-        console.log("here 1");
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          console.log("You can access the files");
-        } else {
-          console.log("Files access permission denied");
-        }
-      }
+  const importFiles = React.useCallback(async () => {
+    const mediaLibraryPermission = await MediaLibrary.requestPermissionsAsync();
 
-      const result = await DocumentPicker.getDocumentAsync({});
-
-      if (result.canceled || !result.assets.length) {
-        return;
-      }
-
-      console.log({ e: result.assets[0] });
-
-      const targetPath =
-        FileSystem.documentDirectory + "comics/unzip/" + uuid();
-      // const unzipped = await unzip(result.assets[0].uri, targetPath);
-
-      // if (unzipped) {
-      //   let files = await FileSystem.readDirectoryAsync(unzipped);
-
-      //   console.log("here 2");
-      //   if (files.length === 0) return;
-      //   files = files.filter((file) => !file.endsWith(".xml"));
-      //   files.sort();
-
-      //   console.log("here 4");
-      //   const fileUrls = files.map((file) => `${unzipped}/${file}`);
-      //   const comic: Comic = {
-      //     createdAt: new Date().toUTCString(),
-      //     id: uuid(),
-      //     pages: fileUrls,
-      //     title: stripFileExtension(result.assets[0].name),
-      //     size: result.assets[0].size || -1,
-      //     currentPage: 0,
-      //   };
-      //   libraryStore.addComic(comic);
-      //   Alert.alert(
-      //     "Success",
-      //     "File imported successfully. You can find it in your library."
-      //   );
-      // }
-    } catch (error) {
-      console.log("error: ", error);
-      Alert.alert("Error", "An error occurred while importing the file.");
+    if (
+      mediaLibraryPermission.status === MediaLibrary.PermissionStatus.DENIED
+    ) {
+      Alert.alert("Media Library", "Permission denied");
+      return;
     }
-  }
+
+    // if (Platform.OS === "android") {
+    //   const granted = await PermissionsAndroid.request(
+    //     PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+    //     {
+    //       title: "Panels",
+    //       message: "Panels needs access to your files",
+    //       buttonNeutral: "Ask Me Later",
+    //       buttonNegative: "Cancel",
+    //       buttonPositive: "OK",
+    //     }
+    //   );
+    //   // Check if permission was granted
+    //   if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+    //     // Inform the user and stop the import process if permission is denied
+    //     Alert.alert(
+    //       "Permission Denied",
+    //       "File access permission is required to import files."
+    //     );
+    //     return; // Exit the function early
+    //   }
+    // }
+
+    // Proceed with DocumentPicker only if permissions are granted (on Android) or not needed (iOS/Web)
+    const result = await DocumentPicker.getDocumentAsync({
+      type: ["image/*", "video/*"], // Accept only images and videos
+      copyToCacheDirectory: true, // Recommended for persistent access
+      multiple: true, // Allow multiple file selection
+    });
+
+    if (result.canceled || !result.assets.length) {
+      return;
+    }
+
+    // Process each selected asset
+    for (const asset of result.assets) {
+      try {
+        const fileType = asset.mimeType?.startsWith("image")
+          ? "image"
+          : asset.mimeType?.startsWith("video")
+          ? "video"
+          : null;
+
+        if (!fileType) {
+          console.warn(
+            `Unsupported file type: ${asset.mimeType} for file ${asset.name}`
+          );
+          Alert.alert(
+            "Unsupported File",
+            `Skipping file "${asset.name}" due to unsupported type: ${
+              asset.mimeType ?? "Unknown"
+            }`
+          );
+          continue; // Skip unsupported files
+        }
+
+        const vaultDir = FileSystem.documentDirectory + "vault/";
+        const dirInfo = await FileSystem.getInfoAsync(vaultDir);
+
+        if (!dirInfo.exists) {
+          await FileSystem.makeDirectoryAsync(vaultDir, {
+            intermediates: true,
+          });
+        }
+
+        const fileExtension = asset.name.split(".").pop() || "";
+        const newFileName = `${uuid()}${
+          fileExtension ? "." + fileExtension : ""
+        }`;
+        const destinationUri = vaultDir + newFileName;
+
+        await FileSystem.copyAsync({
+          from: asset.uri,
+          to: destinationUri,
+        });
+
+        let thumbnail = "";
+        if (fileType === "video") {
+          const { uri } = await VideoThumbnails.getThumbnailAsync(
+            destinationUri,
+            {
+              time: 0,
+            }
+          );
+
+          thumbnail = uri;
+        }
+
+        const newVaultFile: VaultFile = {
+          id: uuid(),
+          name: asset.name,
+          type: fileType,
+          size: asset.size ?? 0,
+          uri: destinationUri,
+          createdAt: new Date().toISOString(),
+          parentId: props.folder ? props.folder.id : null,
+          thumbnail,
+        };
+
+        addFile(newVaultFile);
+
+        if (
+          Platform.OS === "ios" &&
+          FileSystem.cacheDirectory &&
+          asset.uri.startsWith(FileSystem.cacheDirectory)
+        ) {
+          try {
+            console.log("before delete");
+            await FileSystem.deleteAsync(asset.uri, {
+              idempotent: true,
+            });
+          } catch (e) {
+            console.log("Error cleaning up cached file:", e);
+          }
+        }
+
+        if (
+          Platform.OS === "android" &&
+          asset.uri.includes("content://media/")
+        ) {
+          const file = await MediaLibrary.createAssetAsync(asset.uri);
+          await MediaLibrary.deleteAssetsAsync([file]);
+        }
+      } catch (error) {
+        console.error(`Failed to import file ${asset.name}:`, error);
+        Alert.alert("Import Error", `Failed to import file: ${asset.name}`);
+      }
+    }
+  }, [props.folder, addFile]); // Add addFile to dependencies
 
   return (
     <DropdownMenu.Root>
@@ -152,7 +232,7 @@ export default function VaultDropdown(props: VaultDropdownProps) {
           <DropdownMenu.Item
             key="import"
             style={webStyles.dropdownCheckboxItem}
-            // onSelect={pickFile}
+            onSelect={importFiles}
           >
             <DropdownMenu.ItemTitle style={webStyles.dropdownTitle}>
               Import

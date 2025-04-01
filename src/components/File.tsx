@@ -8,12 +8,7 @@ import ImageGallery from "./ImageGallery";
 import VideoPlayer from "./VideoPlayer";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-export default function File({
-  file,
-}: {
-  file: VaultFile;
-  //   onPress: () => void;
-}) {
+export default function File({ file }: { file: VaultFile }) {
   const [showImageGallery, setShowImageGallery] = React.useState(false);
   const [showVideoPlayer, setShowVideoPlayer] = React.useState(false);
   const { styles, theme } = useStyles(stylesheet);
@@ -49,10 +44,9 @@ export default function File({
         >
           <Image
             source={{
-              uri: "https://images.unsplash.com/photo-1742403949587-42a767b9ea5b?q=80&w=200",
+              uri: file.uri,
             }}
             style={styles.imagePreview}
-            //   contentFit="cover"
           />
           <View style={styles.fileNameContainer}>
             <Typography
@@ -66,11 +60,8 @@ export default function File({
           </View>
         </TouchableOpacity>
         <ImageGallery
-          // images={images}
-          // startIndex={fileImageIndex}
-          images={[
-            "https://images.unsplash.com/photo-1742403949587-42a767b9ea5b?q=80&w=400",
-          ]}
+          images={images}
+          startIndex={fileImageIndex}
           isVisible={showImageGallery}
           onClose={() => setShowImageGallery(false)}
         />
@@ -115,7 +106,8 @@ export default function File({
         </View>
       </TouchableOpacity>
       <VideoPlayer
-        videos={[]}
+        video={file.uri}
+        thumbnail={file.thumbnail}
         startIndex={fileImageIndex}
         isVisible={showVideoPlayer}
         onClose={() => setShowVideoPlayer(false)}
